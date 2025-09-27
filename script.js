@@ -1,30 +1,33 @@
 // -------------------------------------------- Example for Stagges --------------------------------------------
 import http from 'k6/http';
-import { sleep, check, group } from 'k6';
+import { check } from 'k6';
 
 export const options = {
-  stages: [
-    { duration: '3s', target: 0 },
-    { duration: '15s', target: 10 },
-    { duration: '3s', target: 0 }
-  ],
-  thresholds: {
-    'http_req_duration': ['p(95)<500'],
-    'http_req_failed': ['rate<0.05']
-  }
+  vus: 20, // number of concurrent users
+  duration: '30s', // test duration
 };
 
-const BASE_URL = 'https://alpha1.yellowmessenger.com';
-const BOT_ID = 'x1742443933167';
-
 export default function () {
+  const req1 = {
+    method: 'GET',
+    url: 'https://quickpizza.grafana.com/api/get',
+  };
+  const req2 = {
+    method: 'DELETE',
+    url: 'https://quickpizza.grafana.com/api/delete',
+  };
+  const req3 = {
+    method: 'POST',
+    url: 'https://quickpizza.grafana.com/api/post',
+    body: JSON.stringify({ hello: 'world!' }),
+    params: { headers: { 'Content-Type': 'application/json' } },
+  };
 
+  // Issue all requests in parallel
+  const responses = http.batch([req1, req2, req3]);
 
-  // Endpoint 1: POST /integrations/yellowmessenger/receive?bottype=sandbox&bot=${BOT_ID}
-  group('receiveApi',() =>{
-   let res1 = http.post(`${BASE_URL}/integrations/yellowmessenger/receive?bottype=sandbox&bot=${BOT_ID}`, {"from":"956617932451876163715619","to":"x1742443933167","message":"{\"message\":\"hello\",\"source\":\"yellowmessenger\",\"subSource\":null,\"messageId\":1758800880709,\"pageUrl\":\"https://alpha1.yellowmessenger.com/liveBot/x1742443933167?region=\",\"isSensitiveInfo\":false}","xmppNotUsed":true}, { headers: { 'x-api-key': 'IUC5_v1XYMPXeZaUWHaR_hWlKc_MzNh60g8vWJOI' } });
-   check(res1, { 'Endpoint 1 status is 200': (r) => r.status === 200 });
-   sleep(1);
-  })
-  
+  // Example check for the POST response
+  check(responses[2], {
+    'form data OK': (res) => JSON.parse(res.body)['hello'] == 'world!',
+  });
 }
