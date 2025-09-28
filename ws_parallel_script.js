@@ -21,14 +21,11 @@ export default function () {
       socket.send('Hello from k6!');
     });
     socket.on('message', function (msg) {
-      console.log('Received:', msg);
       socket.close();
     });
     socket.on('close', function () {
-      console.log('Connection closed');
     });
     socket.on('error', function (e) {
-      console.error('Error:', e.error());
     });
   });
   check(res, { 'status is 101': (r) => r && r.status === 101 });
