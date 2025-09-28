@@ -14,9 +14,9 @@ const urls = [
 
 export default function () {
   const url = urls[(__VU - 1) % urls.length];
-  console.log(`VU: ${__VU} -> url: ${url}`);
+  // console.log(`VU: ${__VU} -> url: ${url}`);
   const res = ws.connect(url, {}, function (socket) {
-    console.log(url);
+    // console.log(url);
     socket.on('open', function () {
       socket.send('Hello from k6!');
     });
